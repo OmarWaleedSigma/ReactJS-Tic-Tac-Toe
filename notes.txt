@@ -1,0 +1,9 @@
+put header into index.html (it doesn't need any props or states & image in public)
+app -> main -> div id game-container ->ol id players ->li ->span cn player -> span cn player name , span cn player symbol
+                                                          ->button 
+after noticing the repeated code you should seperate it into outer component (player)
+make edit button work using state (isEditing)
+outputting span or input according to this state 
+also the text of the button 
+use !isEditing in set state 
+talking about the best practice (old)=>!old
