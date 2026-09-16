@@ -7,3 +7,146 @@ outputting span or input according to this state
 also the text of the button 
 use !isEditing in set state 
 talking about the best practice (old)=>!old
+----------------------------------------------==2==------------------------------
+value should be defaultValue for input and should be set to the player name when editing
+then return it back to value because we will use the state to feed it back to the input
+we will add another pace of state for updating the name with initial value from props and then updating it on change
+use onChange to update the state with the new value
+this is the 2 way binding ===========>
+
+add gameboard component
+we will add a const array of arrays to descripe the board 
+[
+    [null,null,null],
+    [null,null,null],
+    [null,null,null],
+]
+then output dynamicaly the board using map twice (outer for rows and inner for cells)
+it will be ol id = game-board => li => lo => button 
+
+updating state imutably (copying the array and updating the copy) and then setting the state to the new array
+
+handleSelectSquare(rowIndex, colIndex){
+    setGameBourd(prevBoard => {
+        const newBoard = [...prevBoard.map(row => [...row])]; // Create a copy of the board
+        newBoard[rowIndex][colIndex] = 'X'; // Update the selected square
+        return newBoard; // Return the new board to update the state
+    });
+}
+
+lifting state up to the parent component (App) and passing down the state and the handler as props to the GameBoard component
+
+the state will be the activePlayer as a sympol so we can manage the highlited player box 
+and also the handler of it will be triggered when ever the square is clicked and also we will be 
+updated the square value according to this sympol state 
+so we define it in the app and pass it to the player comp and the gameboard comp as props 
+-----------------------------------------------
+#########Avoid Intersecting State: 
+
+Instead of having multiple components manage their own 
+state for the same piece of data, lift the state up to the nearest common ancestor. This ensures that all components reflect the same state and reduces the risk of inconsistencies.
+1- add log component to log the moves and the winner it has ol id =log 
+
+2- talk about the importance of lifting state up to the parent component (App) to manage the game board state instead of making new state in the app wich is gameTurns (we will add a gameTurns state and lift the gameBoard to be it), ensuring that all components reflect the same state and reducing inconsistencies.
+
+3- start handleSelectSquare(rowIndex,colIndex){
+    setActivePlayer(prevPlayer => {
+        const nextPlayer = prevPlayer === 'X' ? 'O' : 'X'; // Toggle between players
+        return nextPlayer; // Return the next player to update the state
+    });
+    setGameTurns(prevTurns => {
+        let currentPlayer = 'X';
+        
+        if(prevTurns.length > 0 && prevTurns[0].player === 'X'){
+            currentPlayer = 'O';
+        }
+        const updatedTurns = [{square: {row: rowIndex, col: colIndex}, player: currentPlayer}, ...prevTurns];
+
+        return updatedTurns;
+    })
+}
+
+#########Deriving State from Props:
+
+4- now we will pass the turns to the game board component and 
+instead of creating a state of update a state we will use the turns to derive a state 
+initialy 
+gameBoard = initialGameBoard 
+and we will lop through turns to update the gameBoard 
+for (let turn of turns){
+    const {square, player} = turn;
+    const {row, col} = square;
+    gameBoard[row][col] = player;
+}
+5- we will face a error because we havent pass the rowIndex or colIndex to the function that 
+handles the state
+so we will add it 
+
+#########Sharing State Between Components:
+
+6- we will pass the turns to the log component 
+turns.map turn => li => turn.player selected turn.square.row, turn.square.col
+
+#########Reducing State Management & identifying Unnecessary State:
+
+7- active player state is not necessary because we can derive it from turns 
+8- we will take the same code in the line 58 to 62 and add it to the top of the app
+9- we will notice the duplication of the code so we make a helper function to derive the
+active player for the app and the state update for the turns
+
+
+10 - disaple the clicked button whenever the player sympol is not null
+
+11 - wining compinations
+
+12 - we will check for every compiniation in every turn so 
+we add in app the loop to check for the first second and third symbol in them
+for (const combination of winningCombinations) {
+    const firstSquareSymbol
+    const secondSquareSymbol 
+    const thirdSquareSymbol
+}
+
+13 - then we need to lift the computing up from the gameboard comp so we can use it in the app
+
+14 - const firstSquareSymbol = gameBoard[combination[0][0]][combination[0][1]];
+    const secondSquareSymbol = gameBoard[combination[1][0]][combination[1][1]];
+    const thirdSquareSymbol = gameBoard[combination[2][0]][combination[2][1]];
+
+15 - then check if they are equal 
+    let winner;
+   if (firstSquareSymbol && firstSquareSymbol === secondSquareSymbol && firstSquareSymbol === thirdSquareSymbol) {
+        winner = firstSquareSymbol;
+        break; // Exit the loop if a winner is found
+    }
+
+16 - then we can show ui for the winner 
+
+17 - GameOver comp 
+
+div id = game-over => h2 => Game over , p => winner won! (if winner) else p => Draw! , p=> button => Rematch!
+
+18 - in app when we will have a draw if (turns.length === 9 && !winner) hasDraw = true;
+
+19 - {(winner || hasDraw) && <GameOver winner={winner} />}
+
+20 - we will add a function for restarting the game wich only resets the turns to []
+then pass it to the button in the game over comp and call it on click
+
+22 - we will face a bug because we are not coping the initial game board in an immutable way 
+so we need to make the compy [...initialGameBoard.map(row => [...row])]; this will work
+
+23- we might need to have the name of the player instead of the symbol 
+so we might think of lifting the state of the players name up but thats wrong because 
+it changes every key stroke in input fields so its not good so we 
+24 -will make a new state in the app (players) { 'X':'Player 1', 'O':'Player 2' } 
+25 - we will make the updating function and pass it to the player comp 
+setPlayers(prevPlayers => ({
+    ...prevPlayers,
+    [symbol]: newName
+}));
+
+26 - we will call this funciton in the handleEdit function but when isEditing is true
+
+27 - we will outsource the extra logic in the app into a hlper file and import funcitons from it
+also the constant of players initial state to pass the player names to player component dynamically as a props
